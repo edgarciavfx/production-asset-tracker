@@ -46,6 +46,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - run: npx prisma generate
+
       - run: npx tsc --noEmit
 
   test:

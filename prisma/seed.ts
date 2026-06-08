@@ -10,34 +10,32 @@ const prisma = new PrismaClient({
 async function main() {
   console.log("Seeding database...")
 
-  await prisma.$transaction(async (tx) => {
-    const adminRole = await tx.role.create({
-      data: { name: "Admin" },
-    })
-
-    await tx.role.create({
-      data: { name: "Producer" },
-    })
-
-    await tx.role.create({
-      data: { name: "Artist" },
-    })
-
-    console.log("Roles created: Admin, Producer, Artist")
-
-    const passwordHash = hashSync("admin123", 10)
-
-    await tx.user.create({
-      data: {
-        name: "Admin User",
-        email: "admin@example.com",
-        passwordHash,
-        roleId: adminRole.id,
-      },
-    })
-
-    console.log("Admin user created: admin@example.com")
+  const adminRole = await prisma.role.create({
+    data: { name: "Admin" },
   })
+
+  await prisma.role.create({
+    data: { name: "Producer" },
+  })
+
+  await prisma.role.create({
+    data: { name: "Artist" },
+  })
+
+  console.log("Roles created: Admin, Producer, Artist")
+
+  const passwordHash = hashSync("admin123", 10)
+
+  await prisma.user.create({
+    data: {
+      name: "Admin User",
+      email: "admin@example.com",
+      passwordHash,
+      roleId: adminRole.id,
+    },
+  })
+
+  console.log("Admin user created: admin@example.com")
 }
 
 main()
