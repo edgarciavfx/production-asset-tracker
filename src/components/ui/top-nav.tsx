@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react"
 import { LogoutButton } from "@/features/auth/components/logout-button"
+import { GlobalSearch } from "@/features/search/components/global-search"
 import { Menu } from "lucide-react"
 
 interface TopNavProps {
@@ -20,9 +21,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
       >
         <Menu className="h-6 w-6" />
       </button>
-      <div className="flex-1 text-sm text-muted-foreground">
-        Production Asset Tracker
-      </div>
+      <GlobalSearch />
       {session?.user && (
         <div className="flex items-center gap-4">
           <span className="text-sm font-medium">{session.user.name}</span>
