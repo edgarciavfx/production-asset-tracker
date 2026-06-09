@@ -77,7 +77,13 @@ export const projectService = {
         skip: (page - 1) * pageSize,
         take: pageSize,
         include: {
-          _count: { select: { assets: true, shots: true, tasks: true } },
+          _count: {
+            select: {
+              assets: { where: { deletedAt: null } },
+              shots: { where: { deletedAt: null } },
+              tasks: { where: { deletedAt: null } },
+            },
+          },
         },
       }),
       prisma.project.count({ where }),
@@ -96,7 +102,13 @@ export const projectService = {
     return prisma.project.findFirst({
       where: { id, deletedAt: null },
       include: {
-        _count: { select: { assets: true, shots: true, tasks: true } },
+        _count: {
+          select: {
+            assets: { where: { deletedAt: null } },
+            shots: { where: { deletedAt: null } },
+            tasks: { where: { deletedAt: null } },
+          },
+        },
       },
     })
   },

@@ -109,7 +109,7 @@ export const shotService = {
 
   async generateShotCode(projectId: string): Promise<string> {
     const last = await prisma.shot.findFirst({
-      where: { projectId, code: { startsWith: "SHOT_" } },
+      where: { projectId, code: { startsWith: "SHOT_" }, deletedAt: null },
       orderBy: { code: "desc" },
       select: { code: true },
     })
