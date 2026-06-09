@@ -4,7 +4,7 @@ import { loginSchema } from "../schemas/login"
 describe("loginSchema", () => {
   it("accepts valid input", () => {
     const result = loginSchema.safeParse({
-      email: "admin@example.com",
+      email: "admin@neoncut.com",
       password: "password",
     })
     expect(result.success).toBe(true)
@@ -20,7 +20,7 @@ describe("loginSchema", () => {
 
   it("rejects missing password", () => {
     const result = loginSchema.safeParse({
-      email: "admin@example.com",
+      email: "admin@neoncut.com",
       password: "",
     })
     expect(result.success).toBe(false)

@@ -92,7 +92,16 @@ railway run npx prisma db seed
 
 This creates:
 - 3 roles: **Admin**, **Producer**, **Artist**
-- 1 admin user: `admin@example.com` / `admin123`
+- 4 demo users with realistic production data
+
+Demo credentials:
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | `admin@neoncut.com` | `neoncut2024` |
+| Producer | `producer@neoncut.com` | `producer123` |
+| Artist | `alice@neoncut.com` | `alice123` |
+| Artist | `bob@neoncut.com` | `bob123` |
 
 ---
 
@@ -141,7 +150,7 @@ Production responses include security headers configured in `next.config.ts`:
 
 After deployment, verify:
 
-- [ ] Login works at `/login` with `admin@example.com` / `admin123`
+- [ ] Login works at `/login` with `admin@neoncut.com` / `neoncut2024`
 - [ ] Dashboard loads with correct metrics
 - [ ] CRUD operations work (create project, asset, shot, task)
 - [ ] Search returns results across entities

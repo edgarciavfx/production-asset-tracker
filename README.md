@@ -12,11 +12,14 @@ Built to demonstrate professional full-stack engineering: clean architecture, ty
 
 **URL**: [https://web-production-0f345.up.railway.app](https://web-production-0f345.up.railway.app)
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | `admin@example.com` | `admin123` |
+| Role | Name | Email | Password |
+|------|------|-------|----------|
+| Admin | Alex Turner | `admin@neoncut.com` | `neoncut2024` |
+| Producer | Sarah Chen | `producer@neoncut.com` | `producer123` |
+| Artist | Alice Martinez | `alice@neoncut.com` | `alice123` |
+| Artist | Bob Tanaka | `bob@neoncut.com` | `bob123` |
 
-Log in as Admin to see full CRUD and user management; create a Producer or Artist user to test RBAC enforcement.
+Log in as Admin to see full CRUD and user management; try Producer or Artist to test RBAC enforcement.
 
 ---
 
@@ -212,7 +215,7 @@ npx prisma db seed
 
 The seed script creates:
 - 3 roles: **Admin**, **Producer**, **Artist**
-- 1 admin user: `admin@example.com` / `admin123`
+- 4 demo users with realistic production data (5 projects, 13 assets, 10 shots, 23 tasks, 6 comments)
 
 ### Run
 

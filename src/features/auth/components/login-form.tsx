@@ -54,7 +54,7 @@ export function LoginForm() {
           autoComplete="email"
           {...register("email")}
           className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          placeholder="admin@example.com"
+          placeholder="admin@neoncut.com"
         />
         {errors.email && (
           <p className="mt-1 text-sm text-destructive">{errors.email.message}</p>
