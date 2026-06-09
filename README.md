@@ -190,7 +190,86 @@ npx prisma studio  # Database UI
 
 ## Deployment
 
-Deployed to Railway. See `SPECIFICATION.md §11` for environment configuration and deployment steps.
+The application is designed for deployment on [Railway](https://railway.app).
+
+### Prerequisites
+
+- A Railway account
+- The `railway` CLI installed (`npm i -g @railway/cli`)
+- A `railway.json` config is already included in the project root
+
+### Steps
+
+1. **Create a Railway project**
+
+   ```bash
+   railway init
+   ```
+
+2. **Provision a PostgreSQL database**
+
+   ```bash
+   railway add postgres
+   ```
+
+   Railway automatically sets the `DATABASE_URL` environment variable.
+
+3. **Set environment variables**
+
+   ```bash
+   railway variables set AUTH_SECRET="<32-char-min-secret>"
+   railway variables set AUTH_URL="https://<your-project>.up.railway.app"
+   ```
+
+   Or set them in the Railway dashboard under the Variables tab.
+
+   Required variables:
+   | Variable | Description |
+   |----------|-------------|
+   | `DATABASE_URL` | Set automatically by Railway Postgres plugin |
+   | `AUTH_SECRET` | Auth.js secret (min 32 characters) |
+   | `AUTH_URL` | Public URL of your Railway deployment |
+
+4. **Deploy**
+
+   ```bash
+   railway up
+   ```
+
+   Railway runs `npm run build` (triggering `postinstall` → `prisma generate`),
+   then starts the app with `npx prisma migrate deploy && npm run start`.
+
+5. **Seed the database** (first deployment only)
+
+   After deploy succeeds, run the seed script in a Railway shell:
+
+   ```bash
+   railway run npx prisma db seed
+   ```
+
+   This creates the initial roles (Admin, Producer, Artist) and an admin user.
+
+### Health Check
+
+Railway monitors the `/login` endpoint for health. The app restarts automatically
+if the health check fails.
+
+### Security Headers
+
+Production responses include security headers configured in `next.config.ts`:
+- Content Security Policy (CSP)
+- Strict-Transport-Security (HSTS)
+- X-Frame-Options (DENY)
+- X-Content-Type-Options (nosniff)
+- Referrer-Policy
+
+### Verification
+
+After deployment, verify:
+- [ ] Login works at `https://<your-project>.up.railway.app/login`
+- [ ] Dashboard loads correctly
+- [ ] CRUD operations work (create project, asset, shot, task)
+- [ ] Data persists across restarts
 
 ---
 
