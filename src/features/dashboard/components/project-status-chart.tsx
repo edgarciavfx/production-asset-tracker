@@ -37,7 +37,7 @@ export function ProjectStatusChart({ data }: ProjectStatusChartProps) {
     <div className="rounded-lg border bg-card p-6 shadow-sm">
       <h3 className="mb-4 text-sm font-medium">Project Status Distribution</h3>
       <div className="h-64">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <PieChart>
             <Pie
               data={chartData}

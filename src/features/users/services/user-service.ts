@@ -42,6 +42,13 @@ export const userService = {
     })
   },
 
+  async getUserByEmail(email: string) {
+    return prisma.user.findFirst({
+      where: { email, deletedAt: null },
+      select: { id: true, email: true },
+    })
+  },
+
   async listRoles(): Promise<RoleOption[]> {
     return prisma.role.findMany({ orderBy: { name: "asc" } })
   },

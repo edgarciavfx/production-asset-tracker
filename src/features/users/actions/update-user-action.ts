@@ -1,7 +1,6 @@
 "use server"
 
 import { auth } from "@/lib/auth"
-import prisma from "@/lib/prisma"
 import { updateUserSchema } from "@/features/users/schemas/user"
 import { userService } from "@/features/users/services/user-service"
 import { canManageUsers } from "@/lib/permissions"
@@ -45,9 +44,7 @@ export async function updateUserAction(
     }
 
     if (validated.data.email && validated.data.email !== existing.email) {
-      const emailExists = await prisma.user.findUnique({
-        where: { email: validated.data.email },
-      })
+      const emailExists = await userService.getUserByEmail(validated.data.email)
       if (emailExists) {
         return { success: false, error: "A user with this email already exists" }
       }
