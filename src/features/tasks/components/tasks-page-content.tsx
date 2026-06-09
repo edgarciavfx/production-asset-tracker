@@ -32,11 +32,12 @@ interface TasksPageContentProps {
   status: string
   priority: string
   projectId: string
+  assigneeId: string
   projects: ProjectOption[]
   users: UserOption[]
 }
 
-export function TasksPageContent({ initialData, sort, order, search, status, priority, projectId, projects, users }: TasksPageContentProps) {
+export function TasksPageContent({ initialData, sort, order, search, status, priority, projectId, assigneeId, projects, users }: TasksPageContentProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -118,6 +119,20 @@ export function TasksPageContent({ initialData, sort, order, search, status, pri
             <SelectItem value="ALL">All Projects</SelectItem>
             {projects.map((p) => (
               <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={assigneeId}
+          onValueChange={(v) => updateParam("assigneeId", v === "ALL" ? "" : v)}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="All Assignees" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Assignees</SelectItem>
+            {users.map((u) => (
+              <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>

@@ -14,6 +14,7 @@ interface TasksPageProps {
     status?: string
     priority?: string
     projectId?: string
+    assigneeId?: string
   }>
 }
 
@@ -29,6 +30,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
   const status = (params.status || "") as TaskStatus | ""
   const priority = (params.priority || "") as TaskPriority | ""
   const projectId = params.projectId || ""
+  const assigneeId = params.assigneeId || ""
 
   const [projects, users, result] = await Promise.all([
     prisma.project.findMany({
@@ -49,6 +51,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
       status,
       priority,
       projectId,
+      assigneeId,
     }),
   ])
 
@@ -61,6 +64,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
       status={status}
       priority={priority}
       projectId={projectId}
+      assigneeId={assigneeId}
       projects={projects}
       users={users}
     />
