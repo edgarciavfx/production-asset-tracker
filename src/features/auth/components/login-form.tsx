@@ -33,8 +33,17 @@ export function LoginForm() {
     }
   }, [state, router])
 
+  function onSubmit(data: LoginInput) {
+    const formData = new FormData()
+    formData.append("email", data.email)
+    formData.append("password", data.password)
+    formAction(formData)
+  }
+
+  const serverFieldErrors = state && !state.success ? state.fieldErrors : undefined
+
   return (
-    <form action={formAction} onSubmit={handleSubmit(() => {})} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
         <label htmlFor="email" className="block text-sm font-medium">
           Email
@@ -50,6 +59,9 @@ export function LoginForm() {
         {errors.email && (
           <p className="mt-1 text-sm text-destructive">{errors.email.message}</p>
         )}
+        {serverFieldErrors?.email?.map((msg) => (
+          <p key={msg} className="mt-1 text-sm text-destructive">{msg}</p>
+        ))}
       </div>
       <div>
         <label htmlFor="password" className="block text-sm font-medium">
@@ -68,6 +80,9 @@ export function LoginForm() {
             {errors.password.message}
           </p>
         )}
+        {serverFieldErrors?.password?.map((msg) => (
+          <p key={msg} className="mt-1 text-sm text-destructive">{msg}</p>
+        ))}
       </div>
       {state && !state.success && (
         <p className="text-sm text-destructive">{state.error}</p>
