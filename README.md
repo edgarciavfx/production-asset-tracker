@@ -50,16 +50,22 @@ This application replaces ad-hoc tracking with a structured, role-aware pipeline
 
 ## Screenshots
 
-| View | Description |
-|------|-------------|
-| **Login** | ![Login](.github/screenshots/login.png) |
-| **Dashboard** | ![Dashboard](.github/screenshots/dashboard.png) |
-| **Projects** | ![Projects](.github/screenshots/projects.png) |
-| **Assets** | ![Assets](.github/screenshots/assets.png) |
-| **Shots** | ![Shots](.github/screenshots/shots.png) |
-| **Tasks** | ![Tasks](.github/screenshots/tasks.png) |
-| **Task Detail** | ![Task Detail](.github/screenshots/task-detail.png) |
-| **User Management** | ![Users](.github/screenshots/users.png) |
+| # | View | Screenshot | Key Feature |
+|---|------|------------|-------------|
+| 1 | **Login** | ![Login form](docs/screenshots/001.png) | Auth.js credentials, rate limiting |
+| 2 | **Dashboard** | ![Dashboard metrics](docs/screenshots/002.png) | Recharts analytics, 5 key metrics |
+| 3 | **Projects List** | ![Projects table](docs/screenshots/003.png) | Pagination, filters, soft delete |
+| 4 | **Project Create** | ![Create dialog](docs/screenshots/004.png) | React Hook Form, Zod, Server Action |
+| 5 | **Assets List** | ![Assets table](docs/screenshots/005.png) | Type badges, status workflow |
+| 6 | **Shots List** | ![Shots table](docs/screenshots/006.png) | Auto-generated codes |
+| 7 | **Tasks List** | ![Tasks table](docs/screenshots/007.png) | Priority badges, filters |
+| 8 | **Task Detail** | ![Task detail](docs/screenshots/008.png) | Comments, XOR assignment |
+| 9 | **Task Create** | ![Create task dialog](docs/screenshots/009.png) | XOR UI toggle |
+| 10 | **User Management** | ![User management](docs/screenshots/010.png) | Admin-only CRUD |
+| 11a | **RBAC — Producer** | ![Producer view](docs/screenshots/011-a.png) | Users tab hidden, 403 on access |
+| 11b | **RBAC — Artist** | ![Artist view](docs/screenshots/011-b.png) | New/delete hidden on projects |
+| 11c | **RBAC — Artist Tasks** | ![Artist tasks](docs/screenshots/011-c.png) | Only assigned tasks, no reassign |
+| 12 | **Global Search** | ![Search results](docs/screenshots/012.png) | Cross-entity (projects/assets/shots/tasks) |
 
 See [`docs/screenshot-checklist.md`](docs/screenshot-checklist.md) for detailed capture instructions.
 
