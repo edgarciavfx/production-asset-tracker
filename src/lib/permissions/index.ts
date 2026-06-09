@@ -35,3 +35,18 @@ export function canDeleteAsset(session: Session | null): boolean {
   if (!session?.user?.id) return false
   return true
 }
+
+export function canCreateShot(session: Session | null): boolean {
+  if (!session?.user?.id) return false
+  return true
+}
+
+export function canUpdateShot(session: Session | null): boolean {
+  if (!session?.user?.id) return false
+  return true
+}
+
+export function canDeleteShot(session: Session | null): boolean {
+  if (!session?.user?.id) return false
+  return true
+}
