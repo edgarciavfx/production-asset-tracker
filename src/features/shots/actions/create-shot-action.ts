@@ -18,7 +18,7 @@ export async function createShotAction(
   }
 
   const validated = createShotSchema.safeParse({
-    code: formData.get("code"),
+    code: formData.get("code") || undefined,
     description: formData.get("description") || undefined,
     status: formData.get("status") || "NOT_STARTED",
     projectId: formData.get("projectId"),

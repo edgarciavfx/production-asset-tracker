@@ -1,8 +1,9 @@
 "use server"
 
-import { signIn } from "@/lib/auth"
+import { signIn, auth } from "@/lib/auth"
 import { loginSchema } from "@/features/auth/schemas/login"
 import { checkRateLimit } from "@/lib/rate-limit"
+import { auditService } from "@/lib/audit"
 import type { ActionResponse } from "@/types"
 import { headers } from "next/headers"
 import { AuthError } from "next-auth"
@@ -28,6 +29,10 @@ export async function loginAction(
   const { allowed } = checkRateLimit(`login:${ip}`, 5, 15 * 60 * 1000)
 
   if (!allowed) {
+    auditService.log("LOGIN", "User", undefined, undefined, {
+      success: false,
+      reason: "rate_limited",
+    })
     return {
       success: false,
       error: "Too many login attempts. Please try again later.",
@@ -40,9 +45,15 @@ export async function loginAction(
       password: validated.data.password,
       redirect: false,
     })
+    const session = await auth()
+    auditService.log("LOGIN", "User", session?.user?.id, session?.user?.id)
     return { success: true, data: undefined }
   } catch (error) {
     if (error instanceof AuthError) {
+      auditService.log("LOGIN", "User", undefined, undefined, {
+        success: false,
+        reason: "invalid_credentials",
+      })
       return { success: false, error: "Invalid email or password" }
     }
     throw error

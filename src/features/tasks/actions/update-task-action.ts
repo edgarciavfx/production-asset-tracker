@@ -13,10 +13,6 @@ export async function updateTaskAction(
   formData: FormData
 ): Promise<ActionResponse<Task>> {
   const session = await auth()
-  if (!canUpdateTask(session)) {
-    return { success: false, error: "Unauthorized" }
-  }
-
   const id = formData.get("id") as string
   if (!id) {
     return { success: false, error: "Missing task ID" }

@@ -198,6 +198,13 @@ export const taskService = {
     return comments as unknown as CommentListItem[]
   },
 
+  async getCommentById(id: string) {
+    return prisma.comment.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true, authorId: true, taskId: true },
+    })
+  },
+
   async createComment(taskId: string, body: string, authorId: string) {
     return prisma.comment.create({
       data: { body, taskId, authorId },

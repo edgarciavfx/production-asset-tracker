@@ -107,10 +107,25 @@ export const shotService = {
     })
   },
 
+  async generateShotCode(projectId: string): Promise<string> {
+    const last = await prisma.shot.findFirst({
+      where: { projectId, code: { startsWith: "SHOT_" } },
+      orderBy: { code: "desc" },
+      select: { code: true },
+    })
+    let next = 1
+    if (last?.code) {
+      const m = last.code.match(/^SHOT_(\d+)$/)
+      if (m) next = parseInt(m[1], 10) + 1
+    }
+    return `SHOT_${String(next).padStart(3, "0")}`
+  },
+
   async createShot(data: CreateShotOutput) {
+    const code = data.code ?? (await this.generateShotCode(data.projectId))
     return prisma.shot.create({
       data: {
-        code: data.code,
+        code,
         description: data.description ?? null,
         status: data.status as ShotStatus,
         projectId: data.projectId,

@@ -20,12 +20,12 @@ describe("createTaskSchema", () => {
     expect(result.success).toBe(true)
   })
 
-  it("accepts task without asset or shot", () => {
+  it("rejects task without asset or shot", () => {
     const result = createTaskSchema.safeParse({
       title: "Test task",
       projectId: "proj-1",
     })
-    expect(result.success).toBe(true)
+    expect(result.success).toBe(false)
   })
 
   it("accepts full input with all fields", () => {
