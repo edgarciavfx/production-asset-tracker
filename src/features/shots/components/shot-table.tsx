@@ -1,11 +1,13 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { ShotStatusBadge } from "./shot-status-badge"
 import { EditShotDialog } from "./edit-shot-dialog"
 import { DeleteShotDialog } from "./delete-shot-dialog"
+import { canUpdateShot, canDeleteShot } from "@/lib/permissions"
 import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import type { ShotListItem } from "@/features/shots/services/shot-service"
 
@@ -34,6 +36,9 @@ interface ShotTableProps {
 export function ShotTable({ shots, total, page, totalPages, sort, order, projects }: ShotTableProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { data: session } = useSession()
+  const canEdit = canUpdateShot(session)
+  const canDelete = canDeleteShot(session)
 
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -76,6 +81,7 @@ export function ShotTable({ shots, total, page, totalPages, sort, order, project
                 Code <SortIcon column="code" sort={sort} order={order} />
               </span>
             </TableHead>
+            <TableHead>Description</TableHead>
             <TableHead className="cursor-pointer" onClick={() => toggleSort("status")}>
               <span className="inline-flex items-center">
                 Status <SortIcon column="status" sort={sort} order={order} />
@@ -87,24 +93,27 @@ export function ShotTable({ shots, total, page, totalPages, sort, order, project
                 Created <SortIcon column="createdAt" sort={sort} order={order} />
               </span>
             </TableHead>
-            <TableHead className="w-24">Actions</TableHead>
+            {(canEdit || canDelete) && <TableHead className="w-24">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
           {shots.map((shot) => (
             <TableRow key={shot.id}>
               <TableCell className="font-medium">{shot.code}</TableCell>
+              <TableCell className="text-muted-foreground">{shot.description ?? "—"}</TableCell>
               <TableCell><ShotStatusBadge status={shot.status} /></TableCell>
               <TableCell>{shot.project.name}</TableCell>
               <TableCell className="text-muted-foreground">
                 {shot.createdAt.toLocaleDateString()}
               </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-1">
-                  <EditShotDialog shot={shot} projects={projects} />
-                  <DeleteShotDialog shotId={shot.id} shotCode={shot.code} />
-                </div>
-              </TableCell>
+              {(canEdit || canDelete) && (
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    {canEdit && <EditShotDialog shot={shot} projects={projects} />}
+                    {canDelete && <DeleteShotDialog shotId={shot.id} shotCode={shot.code} />}
+                  </div>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

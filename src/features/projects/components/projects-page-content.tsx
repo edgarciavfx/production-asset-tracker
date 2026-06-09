@@ -1,6 +1,7 @@
 "use client"
 
 import { useSearchParams, useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/select"
 import { ProjectTable } from "./project-table"
 import { CreateProjectDialog } from "./create-project-dialog"
+import { canCreateProject } from "@/lib/permissions"
 import { Search } from "lucide-react"
 import type { ListProjectsResult } from "@/features/projects/services/project-service"
 
@@ -25,6 +27,8 @@ interface ProjectsPageContentProps {
 export function ProjectsPageContent({ initialData, sort, order, search, status }: ProjectsPageContentProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { data: session } = useSession()
+  const canCreate = canCreateProject(session)
 
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -46,7 +50,7 @@ export function ProjectsPageContent({ initialData, sort, order, search, status }
             Manage your production projects.
           </p>
         </div>
-        <CreateProjectDialog />
+        {canCreate && <CreateProjectDialog />}
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

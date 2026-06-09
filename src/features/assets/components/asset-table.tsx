@@ -1,12 +1,14 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { AssetStatusBadge } from "./asset-status-badge"
 import { AssetTypeBadge } from "./asset-type-badge"
 import { EditAssetDialog } from "./edit-asset-dialog"
 import { DeleteAssetDialog } from "./delete-asset-dialog"
+import { canUpdateAsset, canDeleteAsset } from "@/lib/permissions"
 import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import type { AssetListItem } from "@/features/assets/services/asset-service"
 
@@ -35,6 +37,9 @@ interface AssetTableProps {
 export function AssetTable({ assets, total, page, totalPages, sort, order, projects }: AssetTableProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { data: session } = useSession()
+  const canEdit = canUpdateAsset(session)
+  const canDelete = canDeleteAsset(session)
 
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -93,7 +98,7 @@ export function AssetTable({ assets, total, page, totalPages, sort, order, proje
                 Created <SortIcon column="createdAt" sort={sort} order={order} />
               </span>
             </TableHead>
-            <TableHead className="w-24">Actions</TableHead>
+            {(canEdit || canDelete) && <TableHead className="w-24">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -106,12 +111,14 @@ export function AssetTable({ assets, total, page, totalPages, sort, order, proje
               <TableCell className="text-muted-foreground">
                 {asset.createdAt.toLocaleDateString()}
               </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-1">
-                  <EditAssetDialog asset={asset} projects={projects} />
-                  <DeleteAssetDialog assetId={asset.id} assetName={asset.name} />
-                </div>
-              </TableCell>
+              {(canEdit || canDelete) && (
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    {canEdit && <EditAssetDialog asset={asset} projects={projects} />}
+                    {canDelete && <DeleteAssetDialog assetId={asset.id} assetName={asset.name} />}
+                  </div>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

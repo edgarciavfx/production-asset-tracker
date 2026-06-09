@@ -1,6 +1,7 @@
 "use client"
 
 import { useSearchParams, useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/select"
 import { TaskTable } from "./task-table"
 import { CreateTaskDialog } from "./create-task-dialog"
+import { canCreateTask } from "@/lib/permissions"
 import { Search } from "lucide-react"
 import type { ListTasksResult } from "@/features/tasks/services/task-service"
 
@@ -40,6 +42,8 @@ interface TasksPageContentProps {
 export function TasksPageContent({ initialData, sort, order, search, status, priority, projectId, assigneeId, projects, users }: TasksPageContentProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { data: session } = useSession()
+  const canCreate = canCreateTask(session)
 
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -61,7 +65,7 @@ export function TasksPageContent({ initialData, sort, order, search, status, pri
             Manage production work assignments.
           </p>
         </div>
-        <CreateTaskDialog projects={projects} users={users} />
+        {canCreate && <CreateTaskDialog projects={projects} users={users} />}
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -145,8 +149,6 @@ export function TasksPageContent({ initialData, sort, order, search, status, pri
         totalPages={initialData.totalPages}
         sort={sort}
         order={order}
-        projects={projects}
-        users={users}
       />
     </div>
   )

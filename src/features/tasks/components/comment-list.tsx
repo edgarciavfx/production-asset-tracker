@@ -1,11 +1,13 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { useFormStatus } from "react-dom"
 import { deleteCommentAction } from "@/features/tasks/actions/delete-comment-action"
 import { Button } from "@/components/ui/button"
 import { Trash2 } from "lucide-react"
 import { useState } from "react"
+import { canDeleteComment } from "@/lib/permissions"
 import type { CommentListItem } from "@/features/tasks/services/task-service"
 
 function DeleteCommentButton({ commentId }: { commentId: string }) {
@@ -53,7 +55,9 @@ interface CommentListProps {
   currentUserId?: string | null
 }
 
-export function CommentList({ comments, currentUserId }: CommentListProps) {
+export function CommentList({ comments }: CommentListProps) {
+  const { data: session } = useSession()
+
   if (comments.length === 0) {
     return (
       <p className="text-sm text-muted-foreground py-4 text-center">
@@ -64,22 +68,26 @@ export function CommentList({ comments, currentUserId }: CommentListProps) {
 
   return (
     <div className="space-y-4">
-      {comments.map((comment) => (
-        <div key={comment.id} className="rounded-lg border p-3">
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{comment.author.name}</span>
-              <span className="text-xs text-muted-foreground">
-                {new Date(comment.createdAt).toLocaleString()}
-              </span>
+      {comments.map((comment) => {
+        const canDelete = canDeleteComment(session, comment.author.id)
+
+        return (
+          <div key={comment.id} className="rounded-lg border p-3">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">{comment.author.name}</span>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(comment.createdAt).toLocaleString()}
+                </span>
+              </div>
+              {canDelete && (
+                <DeleteCommentButton commentId={comment.id} />
+              )}
             </div>
-            {currentUserId === comment.author.id && (
-              <DeleteCommentButton commentId={comment.id} />
-            )}
+            <p className="text-sm whitespace-pre-wrap">{comment.body}</p>
           </div>
-          <p className="text-sm whitespace-pre-wrap">{comment.body}</p>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

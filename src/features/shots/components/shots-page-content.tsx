@@ -1,6 +1,7 @@
 "use client"
 
 import { useSearchParams, useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/select"
 import { ShotTable } from "./shot-table"
 import { CreateShotDialog } from "./create-shot-dialog"
+import { canCreateShot } from "@/lib/permissions"
 import { Search } from "lucide-react"
 import type { ListShotsResult } from "@/features/shots/services/shot-service"
 
@@ -32,6 +34,8 @@ interface ShotsPageContentProps {
 export function ShotsPageContent({ initialData, sort, order, search, status, projectId, projects }: ShotsPageContentProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { data: session } = useSession()
+  const canCreate = canCreateShot(session)
 
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -53,7 +57,7 @@ export function ShotsPageContent({ initialData, sort, order, search, status, pro
             Manage your production shots.
           </p>
         </div>
-        <CreateShotDialog projects={projects} />
+        {canCreate && <CreateShotDialog projects={projects} />}
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

@@ -2,7 +2,9 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { cn } from "@/lib/cn"
+import { canManageUsers } from "@/lib/permissions"
 import {
   LayoutDashboard,
   FolderKanban,
@@ -18,7 +20,6 @@ const navItems = [
   { href: "/assets", label: "Assets", icon: Package },
   { href: "/shots", label: "Shots", icon: Clapperboard },
   { href: "/tasks", label: "Tasks", icon: ListTodo },
-  { href: "/users", label: "Users", icon: Users },
 ]
 
 interface SidebarProps {
@@ -28,6 +29,12 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname()
+  const { data: session } = useSession()
+  const showUsers = canManageUsers(session)
+
+  const items = showUsers
+    ? [...navItems, { href: "/users", label: "Users", icon: Users }]
+    : navItems
 
   return (
     <>
@@ -48,7 +55,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <span className="text-lg font-semibold">PAT</span>
         </div>
         <nav className="space-y-1 p-4">
-          {navItems.map((item) => {
+          {items.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
             return (
