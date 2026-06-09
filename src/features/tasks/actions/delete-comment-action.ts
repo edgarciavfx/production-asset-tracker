@@ -20,11 +20,16 @@ export async function deleteCommentAction(
     return { success: false, error: "Missing comment ID" }
   }
 
-  if (!canDeleteComment(session)) {
-    return { success: false, error: "Unauthorized" }
-  }
-
   try {
+    const comment = await taskService.getCommentById(id)
+    if (!comment) {
+      return { success: false, error: "Comment not found" }
+    }
+
+    if (!canDeleteComment(session, comment.authorId)) {
+      return { success: false, error: "Unauthorized" }
+    }
+
     await taskService.deleteComment(id)
     auditService.log("DELETE", "Comment", id, session.user.id)
     return { success: true, data: undefined }

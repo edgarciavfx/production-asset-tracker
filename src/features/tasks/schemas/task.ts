@@ -18,10 +18,9 @@ export const createTaskSchema = z.object({
   (data) => {
     const hasAsset = data.assetId != null && data.assetId !== ""
     const hasShot = data.shotId != null && data.shotId !== ""
-    if (!hasAsset && !hasShot) return true
     return (hasAsset && !hasShot) || (!hasAsset && hasShot)
   },
-  { message: "Task must be assigned to exactly one asset or shot, or neither" }
+  { message: "Task must be assigned to exactly one asset or shot" }
 )
 
 export const updateTaskSchema = z.object({
