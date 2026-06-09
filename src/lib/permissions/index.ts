@@ -50,3 +50,30 @@ export function canDeleteShot(session: Session | null): boolean {
   if (!session?.user?.id) return false
   return true
 }
+
+export function canCreateTask(session: Session | null): boolean {
+  if (!session?.user?.id) return false
+  return true
+}
+
+export function canUpdateTask(session: Session | null, taskAssigneeId?: string | null): boolean {
+  if (!session?.user?.id) return false
+  if (taskAssigneeId && taskAssigneeId !== session.user.id) return false
+  return true
+}
+
+export function canDeleteTask(session: Session | null): boolean {
+  if (!session?.user?.id) return false
+  return true
+}
+
+export function canAssignTask(session: Session | null): boolean {
+  if (!session?.user?.id) return false
+  return true
+}
+
+export function canDeleteComment(session: Session | null, commentAuthorId?: string): boolean {
+  if (!session?.user?.id) return false
+  if (commentAuthorId && commentAuthorId !== session.user.id) return false
+  return true
+}
