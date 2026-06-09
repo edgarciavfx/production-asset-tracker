@@ -1,1 +1,1 @@
-export { auth, signIn, signOut } from "./config"
+export { auth, handlers, signIn, signOut } from "./config"
