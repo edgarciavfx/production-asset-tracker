@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth"
+import { auth } from "@/lib/auth/middleware"
 
 export default auth((req) => {
   if (!req.auth && req.nextUrl.pathname !== "/login") {
