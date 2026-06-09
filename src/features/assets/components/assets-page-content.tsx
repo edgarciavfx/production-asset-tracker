@@ -1,6 +1,7 @@
 "use client"
 
 import { useSearchParams, useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/select"
 import { AssetTable } from "./asset-table"
 import { CreateAssetDialog } from "./create-asset-dialog"
+import { canCreateAsset } from "@/lib/permissions"
 import { Search } from "lucide-react"
 import type { ListAssetsResult } from "@/features/assets/services/asset-service"
 
@@ -33,6 +35,8 @@ interface AssetsPageContentProps {
 export function AssetsPageContent({ initialData, sort, order, search, status, type, projectId, projects }: AssetsPageContentProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { data: session } = useSession()
+  const canCreate = canCreateAsset(session)
 
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -54,7 +58,7 @@ export function AssetsPageContent({ initialData, sort, order, search, status, ty
             Manage your production assets.
           </p>
         </div>
-        <CreateAssetDialog projects={projects} />
+        {canCreate && <CreateAssetDialog projects={projects} />}
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

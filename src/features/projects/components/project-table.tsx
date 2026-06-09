@@ -1,11 +1,13 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { ProjectStatusBadge } from "./project-status-badge"
 import { EditProjectDialog } from "./edit-project-dialog"
 import { DeleteProjectDialog } from "./delete-project-dialog"
+import { canUpdateProject, canDeleteProject } from "@/lib/permissions"
 import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import type { ProjectListItem } from "@/features/projects/services/project-service"
 
@@ -28,6 +30,9 @@ interface ProjectTableProps {
 export function ProjectTable({ projects, total, page, totalPages, sort, order }: ProjectTableProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { data: session } = useSession()
+  const canEdit = canUpdateProject(session)
+  const canDelete = canDeleteProject(session)
 
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -82,7 +87,7 @@ export function ProjectTable({ projects, total, page, totalPages, sort, order }:
                 Created <SortIcon column="createdAt" sort={sort} order={order} />
               </span>
             </TableHead>
-            <TableHead className="w-24">Actions</TableHead>
+            {(canEdit || canDelete) && <TableHead className="w-24">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -97,12 +102,14 @@ export function ProjectTable({ projects, total, page, totalPages, sort, order }:
               <TableCell className="text-muted-foreground">
                 {project.createdAt.toLocaleDateString()}
               </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-1">
-                  <EditProjectDialog project={project} />
-                  <DeleteProjectDialog projectId={project.id} projectName={project.name} />
-                </div>
-              </TableCell>
+              {(canEdit || canDelete) && (
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    {canEdit && <EditProjectDialog project={project} />}
+                    {canDelete && <DeleteProjectDialog projectId={project.id} projectName={project.name} />}
+                  </div>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

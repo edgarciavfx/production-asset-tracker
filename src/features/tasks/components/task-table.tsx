@@ -1,16 +1,15 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { TaskStatusBadge } from "./task-status-badge"
 import { TaskPriorityBadge } from "./task-priority-badge"
-import { EditTaskDialog } from "./edit-task-dialog"
 import { DeleteTaskDialog } from "./delete-task-dialog"
+import { canDeleteTask } from "@/lib/permissions"
 import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import type { TaskListItem } from "@/features/tasks/services/task-service"
-import type { ProjectOption } from "./tasks-page-content"
-import type { UserOption } from "./tasks-page-content"
 
 function SortIcon({ column, sort, order }: { column: string; sort: string; order: string }) {
   if (sort !== column) return <ArrowUpDown className="ml-1 h-3 w-3" />
@@ -26,13 +25,13 @@ interface TaskTableProps {
   totalPages: number
   sort: string
   order: "asc" | "desc"
-  projects: ProjectOption[]
-  users: UserOption[]
 }
 
-export function TaskTable({ tasks, total, page, totalPages, sort, order, projects, users }: TaskTableProps) {
+export function TaskTable({ tasks, total, page, totalPages, sort, order }: TaskTableProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { data: session } = useSession()
+  const canDelete = canDeleteTask(session)
 
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -88,38 +87,41 @@ export function TaskTable({ tasks, total, page, totalPages, sort, order, project
             <TableHead>Assignee</TableHead>
             <TableHead>Parent</TableHead>
             <TableHead>Project</TableHead>
-            <TableHead className="cursor-pointer" onClick={() => toggleSort("dueDate")}>
+            <TableHead className="cursor-pointer" onClick={() => toggleSort("createdAt")}>
               <span className="inline-flex items-center">
-                Due Date <SortIcon column="dueDate" sort={sort} order={order} />
+                Created <SortIcon column="createdAt" sort={sort} order={order} />
               </span>
             </TableHead>
-            <TableHead className="w-24">Actions</TableHead>
+            {canDelete && <TableHead className="w-16">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
           {tasks.map((task) => (
             <TableRow key={task.id}>
-              <TableCell className="font-medium">
+              <TableCell className="font-medium max-w-[200px] truncate">
                 <a href={`/tasks/${task.id}`} className="hover:underline">
                   {task.title}
                 </a>
               </TableCell>
               <TableCell><TaskStatusBadge status={task.status} /></TableCell>
               <TableCell><TaskPriorityBadge priority={task.priority} /></TableCell>
-              <TableCell>{task.assignee?.name ?? "—"}</TableCell>
-              <TableCell className="text-muted-foreground">
-                {task.asset ? `Asset: ${task.asset.name}` : task.shot ? `Shot: ${task.shot.code}` : "—"}
+              <TableCell>{task.assignee?.name ?? "Unassigned"}</TableCell>
+              <TableCell>
+                {task.asset
+                  ? `Asset: ${task.asset.name}`
+                  : task.shot
+                    ? `Shot: ${task.shot.code}`
+                    : "—"}
               </TableCell>
               <TableCell>{task.project.name}</TableCell>
               <TableCell className="text-muted-foreground">
-                {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "—"}
+                {task.createdAt.toLocaleDateString()}
               </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-1">
-                  <EditTaskDialog task={task} projects={projects} users={users} />
+              {canDelete && (
+                <TableCell>
                   <DeleteTaskDialog taskId={task.id} taskTitle={task.title} />
-                </div>
-              </TableCell>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>
