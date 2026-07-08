@@ -1,114 +1,73 @@
-# AGENTS.md — Development Workflow
+# AGENTS.md — Working on Flipbook
 
-## Overview
+Guidance for agents (and humans) developing **Flipbook**, a local-first
+compositing review tool. Read this alongside `ARCHITECTURE.md` (how the code is
+laid out) and `SPECIFICATION.md` (what it does and what's next).
 
-- **Model:** DeepSeek V4 Flash Free (via opencode)
-- **Source of truth:** `ARCHITECTURE.md` (rules) + `SPECIFICATION.md` (features)
-- **Rule:** One spec → one branch → one PR → merge → repeat
-- **Git safety:** opencode will not commit or push without the user's explicit authorization. The user must opt in at the start of each spec session.
+## The one-paragraph mental model
 
-## Prerequisites
+One Next.js process is the whole app: it serves the React UI, the API routes,
+streams media off local disk, and shells out to `ffmpeg`. State lives in a single
+SQLite file (`data/flipbook.db`) via Drizzle; generated proxies live under
+`data/media/<versionId>/`. There is no auth, no cloud, no separate services — it
+binds to `127.0.0.1` and is meant to run on one workstation. Optimize for that.
 
-- Node.js, pnpm, PostgreSQL running locally
-- `gh` CLI authenticated
-- `.env` file in project root (see `.env.example`)
-- All previous specs merged to `main`
+## Commands
 
-## Spec Order
-
-Implement strictly in this order. Later specs depend on earlier ones.
-
-| # | Branch | Depends On | Description |
-|---|--------|------------|-------------|
-| 1 | `spec/1-foundation` | — | Project init, layout, placeholder pages |
-| 2 | `spec/2-database` | 1 | Prisma schema, migrations, seed |
-| 3 | `spec/3-auth` | 1, 2 | Login, logout, session, middleware |
-| 4 | `spec/4-projects` | 2, 3 | Project CRUD, search, filters |
-| 5 | `spec/5-assets` | 2, 3, 4 | Asset CRUD, project linkage |
-| 6 | `spec/6-shots` | 2, 3, 4 | Shot CRUD, project linkage |
-| 7 | `spec/7-tasks` | 2, 3, 4, 5, 6 | Task CRUD, assignment |
-| 8 | `spec/8-dashboard` | 2, 3, 4, 5, 6, 7 | Metrics, charts, recent tasks |
-| 9 | `spec/9-search-filtering` | 2, 3, 4, 5, 6, 7 | Global search, combined filters |
-| 10 | `spec/10-rbac` | 2, 3, 4, 5, 6, 7 | Role enforcement, permission helpers |
-| 11 | `spec/11-deployment` | 1–10 | Railway deployment, env config |
-
-## Per-Spec Workflow
-
-### 1. User authorizes session
-
-```
-User: "Implement spec N. Follow AGENTS.md."
+```bash
+npm run dev          # dev server (http://127.0.0.1:3000)
+npm run build        # production build — also full typecheck (do this before committing)
+npm run lint         # eslint (must be clean)
+npm run db:generate  # regenerate SQL migration after editing db/schema.ts
+npm run db:migrate   # apply migrations (also happens lazily on first boot)
+npx playwright test  # e2e UI tests (starts its own dev server on a temp data dir)
 ```
 
-This authorizes the agent to branch, implement, test, commit, push, and create a PR for spec N.
+Runtime needs `ffmpeg` + `ffprobe` on `PATH`. The build/typecheck does not.
 
-### 2. Agent implements
+## Conventions
 
-```
-1. git checkout main && git pull origin main
-2. git checkout -b spec/N-name
+- **Server vs client.** Anything touching the DB, `fs`, or `ffmpeg` is server-only
+  and imports `server-only`. Client components must never import `db/schema.ts`
+  for a *runtime* value (it pulls `node:crypto` + `better-sqlite3` into the
+  bundle) — import enums/types from `@/lib/status` instead. Type-only imports
+  from schema are fine (they're erased).
+- **Mutations.** In-app writes go through **server actions** in `src/app/actions.ts`
+  and return `ActionResponse<T>` (`{ ok: true, data } | { ok: false, error }`).
+  Never throw across the boundary; wrap bodies in `action(() => …)`.
+- **External ingest** (the Nuke button / scripts) goes through `POST /api/publish`,
+  validated with the Zod schema in `src/lib/publish-schema.ts`.
+- **Data access** is centralized in `src/lib/repo.ts`. Don't scatter Drizzle
+  queries through routes/components — add a repo function.
+- **Media paths** are always derived from `versionMediaPaths(versionId)` in
+  `src/lib/config.ts`. Never hardcode paths under `data/`.
+- **Frames are 1-based.** Proxy frame `1` is the first rendered frame; the
+  *source* frame shown to the user is `frameStart + frame - 1`. Notes anchor to
+  the 1-based proxy frame.
+- **Style.** Follow the surrounding code: TypeScript strict, Prettier
+  (no semicolons, double quotes), Tailwind, Radix primitives in
+  `src/components/ui/` (lifted verbatim — keep them domain-agnostic).
 
-3. Read ARCHITECTURE.md — follow all rules
-4. Read the relevant section of SPECIFICATION.md
+## React strictness (this repo will bite you)
 
-5. Implement the feature:
-   - Server Actions return ActionResponse<T>
-   - Zod validation on all input
-   - Server-side authorization on every action
-   - Business logic in services
-   - Feature code in features/<name>/ (promote to shared only when 2+ features need it)
-   - No raw Prisma in components
-   - cn() for Tailwind class merging
-   - date-fns for date formatting
-   - Install required new dependencies per spec (e.g., @auth/prisma-adapter for auth, recharts for dashboard)
+The `react-hooks` lint rules here are the strict/latest set. Two rules recur:
 
-6. Test: npx vitest run
-7. Lint: npm run lint
-8. Typecheck: npx tsc --noEmit
+- **`set-state-in-effect`** — don't call a `useState` setter (or an in-scope
+  function that does) synchronously in an effect body. Sync props→state in an
+  event handler, a `key` remount, or after an `await`.
+- **`immutability`** — don't mutate a `ref.current` that is also read inside an
+  effect. Prefer functional `setState(f => …)` for playback loops, and
+  `useImperativeHandle` for parent→child commands (see how `Player` exposes
+  `seek()`), instead of mirroring state into refs.
 
-9. Verify acceptance criteria in SPECIFICATION.md §N
-10. Report any assumptions or deviations
+If you find yourself reaching for a `ref` to "read the latest value in an
+effect," stop and reconsider — that's the shape both rules reject.
 
-11. git add -A && git commit -m "spec/N: description"
-12. git push -u origin HEAD
-13. gh pr create --title "Spec N: Name" --body "Implements SPECIFICATION.md §N."
-```
+## Guardrails
 
-### 3. User reviews PR
-
-Agent reports the PR URL. User reviews on GitHub.
-
-### 4. User triggers merge
-
-```
-User: "Merge spec N."
-```
-
-Agent runs `gh pr merge --squash`.
-
-### 5. Repeat
-
-Proceed to spec N+1.
-
-## Rules for the Agent
-
-- Implement exactly one spec per branch. Never scope-creep.
-- Never skip acceptance criteria.
-- Read ARCHITECTURE.md at the start of every new branch.
-- If a dependency isn't merged yet, stop and report it.
-- If a decision isn't covered by ARCHITECTURE.md or SPECIFICATION.md, ask the user.
-- Report all modified files at the end of implementation.
-
-## Commands Reference
-
-| Action | Command |
-|--------|---------|
-| Run dev server | `npm run dev` |
-| Run tests | `npx vitest run` |
-| Lint | `npm run lint` |
-| TypeScript check | `npx tsc --noEmit` |
-| Prisma migrate dev | `npx prisma migrate dev` |
-| Prisma migrate deploy | `npx prisma migrate deploy` |
-| Prisma studio | `npx prisma studio` |
-| Create PR | `gh pr create --title "..." --body "..."` |
-| Merge PR | `gh pr merge --squash` |
+- **Don't commit or push without being asked.** Work on a branch. Keep commits
+  atomic and well-scoped (one concern each).
+- **`data/` is gitignored** — never commit the DB or generated media.
+- After a non-trivial change, run `npm run lint` **and** `npm run build`, and if
+  it touches the review UI, run `npx playwright test`.
+- Prefer editing `db/schema.ts` + `npm run db:generate` over hand-writing SQL.
