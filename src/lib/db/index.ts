@@ -4,6 +4,7 @@ import path from "node:path"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { migrate } from "drizzle-orm/better-sqlite3/migrator"
+import { PHASE_PRODUCTION_BUILD } from "next/constants"
 import { DATA_DIR, DB_PATH } from "@/lib/config"
 import * as schema from "./schema"
 
@@ -34,7 +35,13 @@ export const db = drizzle(sqlite, { schema })
 // Apply migrations once per process on first import. Idempotent — drizzle
 // records applied migrations in its own bookkeeping table, so this is a cheap
 // no-op after the first boot. Keeps the tool zero-ops: no manual migrate step.
-if (!globalForDb.__flipbookMigrated) {
+//
+// Skipped during `next build`: the page-data-collection step imports every
+// route in several parallel worker processes, and each process only tracks
+// __flipbookMigrated for itself — so they'd race to migrate the same SQLite
+// file concurrently (SQLITE_BUSY / "table already exists"). Migrating isn't
+// needed at build time anyway; it still runs on first boot of `next start`.
+if (!globalForDb.__flipbookMigrated && process.env.NEXT_PHASE !== PHASE_PRODUCTION_BUILD) {
   const migrationsFolder = path.join(process.cwd(), "drizzle")
   if (fs.existsSync(migrationsFolder)) {
     migrate(db, { migrationsFolder })
